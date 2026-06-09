@@ -7,18 +7,45 @@ function isCoarsePointer() {
   return window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 }
 
+function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function syncViewportUnits() {
+  const h = window.visualViewport?.height ?? window.innerHeight;
+  document.documentElement.style.setProperty('--app-height', `${h}px`);
+}
+
 function resizeGame() {
   const shell = document.querySelector('.game-shell');
   const canvasWrap = document.querySelector('.canvas-wrap');
   const canvas = document.getElementById('game');
   if (!shell || !canvasWrap || !canvas) return;
 
+  syncViewportUnits();
   gameDpr = Math.min(window.devicePixelRatio || 1, 2.5);
 
+  const touchLayout = document.documentElement.classList.contains('touch-device');
   let availW = canvasWrap.clientWidth || shell.clientWidth;
   let availH = canvasWrap.clientHeight;
 
-  if (availW <= 0) availW = window.innerWidth;
+  if (touchLayout && window.visualViewport) {
+    const vv = window.visualViewport;
+    shell.style.height = `${vv.height}px`;
+    shell.style.width = '100%';
+    availW = vv.width;
+    const hud = shell.querySelector('.hud');
+    const progress = shell.querySelector('.progress-wrap');
+    const chromeH = (hud?.offsetHeight || 0) + (progress?.offsetHeight || 0) + 4;
+    const top = Math.max(0, shell.getBoundingClientRect().top);
+    availH = vv.height - top - chromeH;
+  } else {
+    shell.style.height = '';
+    shell.style.width = '';
+  }
+
+  if (availW <= 0) availW = window.visualViewport?.width || window.innerWidth;
   if (availH <= 0) availH = availW * (GAME_HEIGHT / GAME_WIDTH);
   if (availW <= 0 || availH <= 0) return;
 
@@ -36,15 +63,18 @@ function resizeGame() {
 
 function initResponsive() {
   const root = document.documentElement;
-  root.classList.toggle('touch-device', isCoarsePointer() || 'ontouchstart' in window);
+  const touch = isCoarsePointer() || 'ontouchstart' in window;
+  root.classList.toggle('touch-device', touch);
+  root.classList.toggle('ios-device', isIOS());
 
   resizeGame();
 
   window.addEventListener('resize', resizeGame);
-  window.addEventListener('orientationchange', () => setTimeout(resizeGame, 150));
+  window.addEventListener('orientationchange', () => setTimeout(resizeGame, 250));
   document.addEventListener('fullscreenchange', resizeGame);
   window.visualViewport?.addEventListener('resize', resizeGame);
   window.visualViewport?.addEventListener('scroll', resizeGame);
+  window.addEventListener('pageshow', (e) => { if (e.persisted) resizeGame(); });
 
   if (typeof ResizeObserver !== 'undefined') {
     const shell = document.querySelector('.game-shell');
@@ -53,7 +83,11 @@ function initResponsive() {
     if (wrap) new ResizeObserver(resizeGame).observe(wrap);
   }
 
-  document.addEventListener('touchmove', (e) => {
+  const blockScroll = (e) => {
+    if (document.body.classList.contains('game-active')) e.preventDefault();
+  };
+  document.addEventListener('touchmove', blockScroll, { passive: false });
+  document.addEventListener('gesturestart', (e) => {
     if (document.body.classList.contains('game-active')) e.preventDefault();
   }, { passive: false });
 }
