@@ -1,0 +1,1 @@
+# Block Runner - no obfuscation needed for WebView wrapper.
