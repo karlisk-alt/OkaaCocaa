@@ -1109,15 +1109,31 @@ function handlePlayAgain(e) {
   startGame(true);
 }
 
-document.getElementById('start-btn').addEventListener('click', (e) => { e.preventDefault(); AudioFX.init(); startGame(true); });
-document.getElementById('play-again-btn').addEventListener('click', handlePlayAgain);
-document.getElementById('main-menu-btn').addEventListener('click', (e) => { e.preventDefault(); goToMainMenu(); });
-document.getElementById('restart-btn').addEventListener('click', (e) => { e.preventDefault(); startGame(true); });
-document.getElementById('resume-btn').addEventListener('click', (e) => { e.preventDefault(); togglePause(); });
-document.getElementById('submit-score-btn').addEventListener('click', (e) => { e.preventDefault(); submitScore(); });
-document.getElementById('mute-btn').addEventListener('click', toggleMute);
+function bindTapButton(id, handler) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  let lastTap = 0;
+  const run = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const now = Date.now();
+    if (now - lastTap < 400) return;
+    lastTap = now;
+    handler(e);
+  };
+  el.addEventListener('click', run);
+  el.addEventListener('touchend', run, { passive: false });
+}
+
+bindTapButton('start-btn', () => { AudioFX.init(); startGame(true); });
+bindTapButton('play-again-btn', handlePlayAgain);
+bindTapButton('main-menu-btn', () => goToMainMenu());
+bindTapButton('restart-btn', () => startGame(true));
+bindTapButton('resume-btn', () => togglePause());
+bindTapButton('submit-score-btn', () => submitScore());
+bindTapButton('mute-btn', () => toggleMute());
+bindTapButton('pause-btn', () => togglePause());
 document.getElementById('fullscreen-btn').addEventListener('click', toggleFullscreen);
-document.getElementById('pause-btn')?.addEventListener('click', (e) => { e.preventDefault(); togglePause(); });
 document.getElementById('end-name-input').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') { e.preventDefault(); submitScore(); }
 });

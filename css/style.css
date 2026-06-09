@@ -43,6 +43,7 @@ body.game-active {
 
 .game-shell {
   position: relative;
+  isolation: isolate;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
@@ -190,6 +191,9 @@ canvas {
   font-weight: 600;
   cursor: pointer;
   font-size: 0.85rem;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .btn:hover {
@@ -209,7 +213,17 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
+  z-index: 20;
+  touch-action: manipulation;
+}
+
+#start-screen {
+  align-items: stretch;
+  justify-content: center;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 0.5rem;
 }
 
 #end-screen {
@@ -235,6 +249,37 @@ canvas {
   max-width: 440px;
   max-height: 90vh;
   overflow-y: auto;
+}
+
+.start-panel {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(var(--app-height, 100dvh) - 1rem);
+  padding: 0;
+  overflow: hidden;
+  width: calc(100% - 0.5rem);
+}
+
+.start-panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 1.25rem 1.5rem 0.5rem;
+}
+
+.start-panel-footer {
+  flex-shrink: 0;
+  padding: 0.75rem 1.5rem max(1rem, env(safe-area-inset-bottom));
+  border-top: 1px solid #30363d;
+  background: #161b22;
+}
+
+.start-panel-footer .btn-large {
+  margin-top: 0;
+  width: 100%;
+  min-height: 48px;
+  font-size: 1.05rem;
 }
 
 .panel h1 {
@@ -634,6 +679,12 @@ canvas {
   gap: 1rem;
   padding: 0 1rem;
   z-index: 5;
+  pointer-events: none;
+}
+
+body.game-active .touch-controls {
+  display: flex;
+  pointer-events: auto;
 }
 
 .touch-btn {
@@ -687,10 +738,6 @@ canvas {
     min-height: 0;
   }
 
-  .touch-controls {
-    display: flex;
-  }
-
   .mobile-only {
     display: inline-flex;
   }
@@ -719,10 +766,18 @@ canvas {
     display: none;
   }
 
-  .panel {
+  .panel:not(.start-panel) {
     padding: 1.25rem 1.5rem;
     margin: max(0.5rem, env(safe-area-inset-top)) max(0.5rem, env(safe-area-inset-right)) max(0.5rem, env(safe-area-inset-bottom)) max(0.5rem, env(safe-area-inset-left));
     max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 1rem);
+  }
+
+  #start-screen {
+    padding: max(0.35rem, env(safe-area-inset-top)) max(0.35rem, env(safe-area-inset-right)) max(0.35rem, env(safe-area-inset-bottom)) max(0.35rem, env(safe-area-inset-left));
+  }
+
+  .start-leaderboard-wrap .leaderboard {
+    max-height: 120px;
   }
 
   .panel h1 {
@@ -865,10 +920,6 @@ canvas {
     margin: 0.75rem 0;
     padding: 0.65rem;
   }
-}
-
-.touch-device .touch-controls {
-  display: flex;
 }
 
 .touch-device .mobile-only {

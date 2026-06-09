@@ -32,7 +32,9 @@ const ScoreStorage = (() => {
       }
     } catch (_) {}
 
-    cached = structuredClone(memoryFallback);
+    cached = typeof structuredClone === 'function'
+      ? structuredClone(memoryFallback)
+      : JSON.parse(JSON.stringify(memoryFallback));
     migrateLegacyScore(cached);
     return cached;
   }

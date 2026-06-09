@@ -66,34 +66,38 @@
     </div>
 
     <div class="overlay" id="start-screen">
-      <div class="panel panel-wide">
-        <h1>Block Runner</h1>
-        <p>Enter your name, pick a difficulty, and run the gauntlet.</p>
+      <div class="panel panel-wide start-panel">
+        <div class="start-panel-body">
+          <h1>Block Runner</h1>
+          <p>Enter your name, pick a difficulty, and run the gauntlet.</p>
 
-        <div class="name-form">
-          <label for="start-name-input">Your name</label>
-          <input type="text" id="start-name-input" maxlength="12" placeholder="Player" autocomplete="nickname">
+          <div class="name-form">
+            <label for="start-name-input">Your name</label>
+            <input type="text" id="start-name-input" maxlength="12" placeholder="Player" autocomplete="nickname">
+          </div>
+
+          <div class="name-form">
+            <label for="difficulty-select">Difficulty</label>
+            <select id="difficulty-select">
+              <option value="easy">Easy — 5 lives, 50% score</option>
+              <option value="normal" selected>Normal — 3 lives, 100% score</option>
+              <option value="hard">Hard — 2 lives, 150% score</option>
+            </select>
+          </div>
+
+          <div class="leaderboard-wrap start-leaderboard-wrap">
+            <h2>High Scores</h2>
+            <ol id="start-leaderboard" class="leaderboard">
+              <li class="empty">No scores yet — be the first!</li>
+            </ol>
+          </div>
+
+          <p class="controls desktop-controls">← → Move · Space Jump · Shift Dash · P Pause · M Mute · F Fullscreen</p>
+          <p class="controls mobile-controls">Tap ◀ ▶ to move · ▲ jump · ⚡ dash · ⏸ pause</p>
         </div>
-
-        <div class="name-form">
-          <label for="difficulty-select">Difficulty</label>
-          <select id="difficulty-select">
-            <option value="easy">Easy — 5 lives, 50% score</option>
-            <option value="normal" selected>Normal — 3 lives, 100% score</option>
-            <option value="hard">Hard — 2 lives, 150% score</option>
-          </select>
+        <div class="start-panel-footer">
+          <button type="button" id="start-btn" class="btn btn-large">Start Game</button>
         </div>
-
-        <div class="leaderboard-wrap">
-          <h2>High Scores</h2>
-          <ol id="start-leaderboard" class="leaderboard">
-            <li class="empty">No scores yet — be the first!</li>
-          </ol>
-        </div>
-
-        <p class="controls desktop-controls">← → Move · Space Jump · Shift Dash · P Pause · M Mute · F Fullscreen</p>
-        <p class="controls mobile-controls">Tap ◀ ▶ to move · ▲ jump · ⚡ dash · ⏸ pause</p>
-        <button type="button" id="start-btn" class="btn btn-large">Start Game</button>
       </div>
     </div>
 
