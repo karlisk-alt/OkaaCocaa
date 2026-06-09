@@ -66,7 +66,10 @@ const ScoreStorage = (() => {
     } catch (_) {}
 
     try {
-      document.cookie = `${DATA_KEY}=${encodeURIComponent(str)}; max-age=31536000; path=/; SameSite=Lax`;
+      const cookiePath = location.pathname.includes('/OkaaCocaa')
+        ? '/OkaaCocaa/'
+        : '/';
+      document.cookie = `${DATA_KEY}=${encodeURIComponent(str)}; max-age=31536000; path=${cookiePath}; SameSite=Lax`;
     } catch (_) {}
   }
 
