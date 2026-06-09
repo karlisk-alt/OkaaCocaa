@@ -2,6 +2,7 @@ const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
 const TILE = 32;
+// GAME_WIDTH / GAME_HEIGHT defined in responsive.js
 const GRAVITY = 0.55;
 const FRICTION = 0.82;
 const COMBO_WINDOW = 120;
@@ -261,6 +262,10 @@ function hideAllOverlays() {
   document.activeElement?.blur();
 }
 
+function syncPlayMode() {
+  setPlayMode?.(gameState === 'playing');
+}
+
 function startGame(fullReset = true) {
   const endVisible = !document.getElementById('end-screen').classList.contains('hidden');
   const nameId = endVisible ? 'end-name-input' : 'start-name-input';
@@ -291,6 +296,7 @@ function startGame(fullReset = true) {
     stats.gameStart = performance.now();
   }
   buildLevel(currentLevel);
+  syncPlayMode();
 }
 
 function goToMainMenu() {
@@ -303,6 +309,7 @@ function goToMainMenu() {
   document.getElementById('start-name-input').value = playerName;
   renderLeaderboard('start-leaderboard');
   buildLevel(0);
+  syncPlayMode();
 }
 
 function updateHUD() {
@@ -495,7 +502,7 @@ function updatePlayer() {
       }
     });
     if (player.onGround) { player.jumpsLeft = 2; player.coyoteTimer = 10; }
-    if (player.y > canvas.height + 50) loseLife();
+    if (player.y > GAME_HEIGHT + 50) loseLife();
     return;
   }
 
@@ -574,7 +581,7 @@ function updatePlayer() {
   if (player.onGround) { player.jumpsLeft = 2; player.coyoteTimer = 10; }
   else if (player.coyoteTimer > 0) player.coyoteTimer--;
 
-  if (player.y > canvas.height + 50) loseLife();
+  if (player.y > GAME_HEIGHT + 50) loseLife();
   if (player.x < 0) { player.x = 0; player.vx = 0; }
 }
 
@@ -713,11 +720,13 @@ function endGame(won) {
     `Final score: ${score.toLocaleString()}${score > hs ? ' — beats the leaderboard!' : ''} · Top: ${hs.toLocaleString()}`;
   showEndScreenSubmit();
   document.getElementById('end-screen').classList.remove('hidden');
+  syncPlayMode();
 }
 
 function togglePause() {
   if (gameState === 'playing') { gameState = 'paused'; document.getElementById('pause-screen').classList.remove('hidden'); }
   else if (gameState === 'paused') { gameState = 'playing'; document.getElementById('pause-screen').classList.add('hidden'); }
+  syncPlayMode();
 }
 
 function toggleMute() {
@@ -728,21 +737,24 @@ function toggleMute() {
 
 function toggleFullscreen() {
   const shell = document.querySelector('.game-shell');
-  if (!document.fullscreenElement) shell.requestFullscreen?.();
-  else document.exitFullscreen?.();
+  if (!document.fullscreenElement) {
+    shell.requestFullscreen?.().then?.(() => resizeGame?.());
+  } else {
+    document.exitFullscreen?.().then?.(() => resizeGame?.());
+  }
 }
 
 function updateCamera() {
-  const target = player.x - canvas.width * 0.35;
+  const target = player.x - GAME_WIDTH * 0.35;
   cameraX += (target - cameraX) * 0.1;
-  cameraX = Math.max(0, Math.min(cameraX, levelWidth * TILE - canvas.width));
+  cameraX = Math.max(0, Math.min(cameraX, levelWidth * TILE - GAME_WIDTH));
 }
 
 function drawParallax() {
   const hills = levelTheme.parallax || '#2d7a32';
   ctx.fillStyle = hills;
   for (let i = 0; i < 8; i++) {
-    const hx = ((i * 280 - cameraX * 0.35) % (canvas.width + 300)) - 80;
+    const hx = ((i * 280 - cameraX * 0.35) % (GAME_WIDTH + 300)) - 80;
     ctx.beginPath();
     ctx.moveTo(hx, 16 * TILE);
     ctx.quadraticCurveTo(hx + 80, 16 * TILE - 60 - i * 8, hx + 160, 16 * TILE);
@@ -750,20 +762,20 @@ function drawParallax() {
   }
   ctx.fillStyle = 'rgba(0,0,0,0.12)';
   for (let i = 0; i < 5; i++) {
-    const bx = ((i * 350 - cameraX * 0.15) % (canvas.width + 400)) - 100;
+    const bx = ((i * 350 - cameraX * 0.15) % (GAME_WIDTH + 400)) - 100;
     ctx.fillRect(bx, 16 * TILE - 120 - (i % 3) * 30, 60 + i * 15, 120 + (i % 3) * 30);
   }
 }
 
 function drawBackground() {
-  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  const grad = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
   levelTheme.sky.forEach((c, i) => grad.addColorStop(i / (levelTheme.sky.length - 1), c));
   ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
   ctx.fillStyle = 'rgba(255,255,255,0.35)';
   for (let i = 0; i < 6; i++) {
-    const cx = ((i * 200 - cameraX * 0.2) % (canvas.width + 200)) - 100;
+    const cx = ((i * 200 - cameraX * 0.2) % (GAME_WIDTH + 200)) - 100;
     ctx.beginPath();
     ctx.ellipse(cx, 50 + i * 20, 45 + i * 8, 18, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -771,10 +783,10 @@ function drawBackground() {
 
   drawParallax();
   ctx.fillStyle = levelTheme.ground;
-  ctx.fillRect(0, 16 * TILE, canvas.width, canvas.height - 16 * TILE);
+  ctx.fillRect(0, 16 * TILE, GAME_WIDTH, GAME_HEIGHT - 16 * TILE);
 
   ctx.fillStyle = 'rgba(255, 80, 80, 0.25)';
-  for (let x = -cameraX % 40; x < canvas.width; x += 40) {
+  for (let x = -cameraX % 40; x < GAME_WIDTH; x += 40) {
     ctx.fillRect(x, 16 * TILE - 8, 20, 8);
   }
 }
@@ -782,7 +794,7 @@ function drawBackground() {
 function drawPlatforms() {
   platforms.forEach((p) => {
     const sx = p.x - cameraX;
-    if (sx + p.w < -10 || sx > canvas.width + 10) return;
+    if (sx + p.w < -10 || sx > GAME_WIDTH + 10) return;
     if (p.type === 'moving') {
       ctx.fillStyle = '#6a5acd'; ctx.fillRect(sx, p.y, p.w, p.h);
       ctx.fillStyle = '#8a7ae8'; ctx.fillRect(sx + 2, p.y + 2, p.w - 4, 6);
@@ -801,7 +813,7 @@ function drawPlatforms() {
 function drawSpikes() {
   spikes.forEach((s) => {
     const sx = s.x - cameraX;
-    if (sx + s.w < -10 || sx > canvas.width + 10) return;
+    if (sx + s.w < -10 || sx > GAME_WIDTH + 10) return;
     ctx.fillStyle = '#888';
     for (let i = 0; i < s.w; i += TILE) {
       ctx.beginPath();
@@ -817,7 +829,7 @@ function drawSpikes() {
 function drawCheckpoints() {
   checkpoints.forEach((cp) => {
     const sx = cp.x - cameraX;
-    if (sx < -20 || sx > canvas.width + 20) return;
+    if (sx < -20 || sx > GAME_WIDTH + 20) return;
     ctx.fillStyle = cp.activated ? '#22c55e' : '#555';
     ctx.fillRect(sx, cp.y, cp.w, cp.h);
     if (cp.activated) { ctx.fillStyle = '#86efac'; ctx.fillRect(sx + 1, cp.y + 4, cp.w - 2, 8); }
@@ -829,7 +841,7 @@ function drawCoins() {
     if (c.collected) return;
     const sx = c.x - cameraX;
     const sy = c.y + Math.sin(c.bob) * 3;
-    if (sx < -20 || sx > canvas.width + 20) return;
+    if (sx < -20 || sx > GAME_WIDTH + 20) return;
     ctx.save();
     ctx.translate(sx + 8, sy + 8);
     ctx.scale(Math.cos(c.spin) * 0.4 + 0.6, 1);
@@ -846,7 +858,7 @@ function drawHearts() {
     if (h.collected) return;
     const sx = h.x - cameraX;
     const sy = h.y + Math.sin(h.bob) * 4;
-    if (sx < -30 || sx > canvas.width + 30) return;
+    if (sx < -30 || sx > GAME_WIDTH + 30) return;
     ctx.fillStyle = '#ff6b9d';
     ctx.beginPath();
     ctx.moveTo(sx + 12, sy + 8);
@@ -863,7 +875,7 @@ function drawCollectibles() {
     if (c.collected) return;
     const sx = c.x - cameraX;
     const sy = c.y + Math.sin(c.bob) * 3;
-    if (sx < -30 || sx > canvas.width + 30) return;
+    if (sx < -30 || sx > GAME_WIDTH + 30) return;
     if (c.type === 'coke') {
       ctx.fillStyle = '#888'; ctx.fillRect(sx - 2, sy + 10, 22, 6);
       ctx.fillStyle = '#ddd'; ctx.fillRect(sx, sy + 11, 18, 4);
@@ -888,7 +900,7 @@ function drawEnemies() {
   enemies.forEach((e) => {
     if (!e.alive) return;
     const sx = e.x - cameraX;
-    if (sx < -40 || sx > canvas.width + 40) return;
+    if (sx < -40 || sx > GAME_WIDTH + 40) return;
     ctx.fillStyle = '#8b4513';
     ctx.beginPath(); ctx.ellipse(sx + e.w / 2, e.y + e.h - 4, e.w / 2, e.h / 2.5, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#fff'; ctx.fillRect(sx + 6, e.y + 8, 6, 8); ctx.fillRect(sx + 16, e.y + 8, 6, 8);
@@ -900,7 +912,7 @@ function drawFlyers() {
   flyers.forEach((f) => {
     if (!f.alive) return;
     const sx = f.x - cameraX;
-    if (sx < -40 || sx > canvas.width + 40) return;
+    if (sx < -40 || sx > GAME_WIDTH + 40) return;
     const wingOff = Math.sin(f.wing) * 6;
     ctx.fillStyle = '#6b3fa0';
     ctx.beginPath(); ctx.ellipse(sx + f.w / 2, f.y + f.h / 2, f.w / 2, f.h / 2.2, 0, 0, Math.PI * 2); ctx.fill();
@@ -980,16 +992,18 @@ function drawLevelBanner() {
   if (levelBannerTimer <= 0) return;
   ctx.globalAlpha = Math.min(1, levelBannerTimer / 60);
   ctx.fillStyle = 'rgba(0,0,0,0.5)';
-  ctx.fillRect(0, canvas.height / 2 - 40, canvas.width, 80);
+  ctx.fillRect(0, GAME_HEIGHT / 2 - 40, GAME_WIDTH, 80);
   ctx.font = 'bold 28px Segoe UI, sans-serif';
   ctx.fillStyle = '#58a6ff'; ctx.textAlign = 'center';
-  ctx.fillText(`Level ${currentLevel + 1}`, canvas.width / 2, canvas.height / 2 - 5);
+  ctx.fillText(`Level ${currentLevel + 1}`, GAME_WIDTH / 2, GAME_HEIGHT / 2 - 5);
   ctx.font = '16px Segoe UI, sans-serif'; ctx.fillStyle = '#c9d1d9';
-  ctx.fillText(LEVELS[currentLevel].name, canvas.width / 2, canvas.height / 2 + 22);
+  ctx.fillText(LEVELS[currentLevel].name, GAME_WIDTH / 2, GAME_HEIGHT / 2 + 22);
   ctx.textAlign = 'left'; ctx.globalAlpha = 1;
 }
 
 function draw() {
+  const dpr = typeof getGameDpr === 'function' ? getGameDpr() : 1;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.save();
   ctx.translate(shakeX, shakeY);
   drawBackground();
@@ -1007,16 +1021,16 @@ function draw() {
   drawPopups();
   drawLevelBanner();
 
-  if (activeEffect?.name === 'HYPE') { ctx.fillStyle = 'rgba(255, 215, 0, 0.06)'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
-  if (activeEffect?.name === 'TWEAK') { ctx.fillStyle = `hsla(${rainbowHue}, 60%, 50%, 0.08)`; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+  if (activeEffect?.name === 'HYPE') { ctx.fillStyle = 'rgba(255, 215, 0, 0.06)'; ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT); }
+  if (activeEffect?.name === 'TWEAK') { ctx.fillStyle = `hsla(${rainbowHue}, 60%, 50%, 0.08)`; ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT); }
   if (activeEffect?.blur) {
-    ctx.fillStyle = 'rgba(107, 255, 184, 0.1)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'rgba(107, 255, 184, 0.1)'; ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
     ctx.strokeStyle = 'rgba(107, 255, 184, 0.15)'; ctx.lineWidth = 4;
-    ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
+    ctx.strokeRect(8, 8, GAME_WIDTH - 16, GAME_HEIGHT - 16);
   }
   if (damageFlash > 0) {
     ctx.fillStyle = `rgba(255, 40, 40, ${damageFlash / 40})`;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
   }
   ctx.restore();
 }
@@ -1044,18 +1058,22 @@ function setupTouch() {
   const bind = (id, key) => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.addEventListener('touchstart', (e) => { e.preventDefault(); touchInput[key] = true; });
-    el.addEventListener('touchend', (e) => { e.preventDefault(); touchInput[key] = false; });
-    el.addEventListener('mousedown', (e) => { e.preventDefault(); touchInput[key] = true; });
-    el.addEventListener('mouseup', () => { touchInput[key] = false; });
-    el.addEventListener('mouseleave', () => { touchInput[key] = false; });
+    const down = (e) => {
+      e.preventDefault();
+      touchInput[key] = true;
+      el.setPointerCapture?.(e.pointerId);
+    };
+    const up = () => { touchInput[key] = false; };
+    el.addEventListener('pointerdown', down);
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+    el.addEventListener('lostpointercapture', up);
   };
   const bindOnce = (id) => {
     const el = document.getElementById(id);
     if (!el) return;
     const fire = (e) => { e.preventDefault(); if (gameState === 'playing') tryDash(); };
-    el.addEventListener('touchstart', fire);
-    el.addEventListener('mousedown', fire);
+    el.addEventListener('pointerdown', fire);
   };
   bind('btn-left', 'left');
   bind('btn-right', 'right');
@@ -1099,11 +1117,13 @@ document.getElementById('resume-btn').addEventListener('click', (e) => { e.preve
 document.getElementById('submit-score-btn').addEventListener('click', (e) => { e.preventDefault(); submitScore(); });
 document.getElementById('mute-btn').addEventListener('click', toggleMute);
 document.getElementById('fullscreen-btn').addEventListener('click', toggleFullscreen);
+document.getElementById('pause-btn')?.addEventListener('click', (e) => { e.preventDefault(); togglePause(); });
 document.getElementById('end-name-input').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') { e.preventDefault(); submitScore(); }
 });
 
 setupTouch();
+initResponsive();
 playerName = ScoreStorage.getPlayerName() || 'Player';
 difficulty = ScoreStorage.getDifficulty();
 document.getElementById('start-name-input').value = playerName;

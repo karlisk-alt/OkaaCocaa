@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Block Runner</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -37,9 +40,10 @@
       <div class="hud-block effect-display" id="effect-display">No active effect</div>
       <span id="combo-display" class="combo-display"></span>
       <span id="dash-indicator" class="dash-indicator" title="Shift to dash">DASH</span>
-      <button type="button" id="mute-btn" class="btn btn-icon" title="Mute (M)">🔊</button>
-      <button type="button" id="fullscreen-btn" class="btn btn-icon" title="Fullscreen (F)">⛶</button>
-      <button type="button" id="restart-btn" class="btn">Restart</button>
+      <button type="button" id="pause-btn" class="btn btn-icon mobile-only" title="Pause" aria-label="Pause">⏸</button>
+      <button type="button" id="mute-btn" class="btn btn-icon" title="Mute (M)" aria-label="Mute">🔊</button>
+      <button type="button" id="fullscreen-btn" class="btn btn-icon desktop-only" title="Fullscreen (F)" aria-label="Fullscreen">⛶</button>
+      <button type="button" id="restart-btn" class="btn desktop-only">Restart</button>
     </header>
 
     <div class="progress-wrap">
@@ -86,7 +90,8 @@
           </ol>
         </div>
 
-        <p class="controls">← → Move · Space Jump · Shift Dash · P Pause · M Mute · F Fullscreen</p>
+        <p class="controls desktop-controls">← → Move · Space Jump · Shift Dash · P Pause · M Mute · F Fullscreen</p>
+        <p class="controls mobile-controls">Tap ◀ ▶ to move · ▲ jump · ⚡ dash · ⏸ pause</p>
         <button type="button" id="start-btn" class="btn btn-large">Start Game</button>
       </div>
     </div>
@@ -133,6 +138,7 @@
   <script src="js/levels.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/audio.js"></script>
+  <script src="js/responsive.js"></script>
   <script src="js/game.js"></script>
 </body>
 </html>
